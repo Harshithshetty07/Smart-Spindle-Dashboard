@@ -7,10 +7,13 @@ module.exports = {
   ],
   theme: {
     extend: {
-      colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+      fontFamily: {
+        'poppins': ['Poppins', 'sans-serif'],
+        'league-gothic': ['League Gothic', 'sans-serif']
       },
+      zIndex: {
+        '100': '100'
+      }
     },
   },
   plugins: [],

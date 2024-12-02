@@ -1,21 +1,116 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+
+@import url('https://fonts.googleapis.com/css2?family=League+Gothic&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+.carousel-title {
+  font-family: Poppins;
 }
 
-@media (prefers-color-scheme: dark) {
+
+.carousel-item {
+  transition: 0.5s;
+  transform: translateX(calc(100vw * var(--calculation)));
+  opacity: 0;
+}
+
+.carousel-image {
+  transform: rotate(0deg);
+  transition: 0.5s;
+  transition-delay: 0.3s;
+}
+
+.carousel-item .category,
+.carousel-item h2,
+.carousel-item .description,
+.carousel-item .more {
+  transform: translateX(calc(200px * var(--calculation)));
+  transition: 0.7s;
+  opacity: 0;
+  transition-delay: 0.3s;
+}
+
+.carousel-item h2 {
+  transition-delay: 0.5s;
+}
+
+.carousel-item .description {
+  transition-delay: 0.7s;
+}
+
+.carousel-item .more {
+  transition-delay: 0.9s;
+}
+
+.carousel-item.active {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.carousel-item.active .carousel-image {
+  transform: rotate(-20deg);
+}
+
+.carousel-item.active .category,
+.carousel-item.active h2,
+.carousel-item.active .description,
+.carousel-item.active .more {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+/* Responsive Styles */
+
+/*
+@media screen and (max-width: 1023px) and (min-width: 768px) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --w-column: 100px;
+  }
+
+  .carousel {
+    height: 60vh;
+  }
+
+  .carousel-item h2 {
+    font-size: 5em;
   }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+@media screen and (max-width: 767px) {
+  :root {
+    --w-column: 50px;
+  }
+
+  .carousel-item .content {
+    justify-content: end;
+    padding-bottom: 20px;
+    margin-top: 20px;
+  }
+
+  .carousel-item .content h2 {
+    font-size: 5em;
+  }
+
+  .carousel-item figure {
+    width: 110%;
+    transform: translateY(0);
+    top: 200px;
+    left: -30px;
+  }
+
+  .indicators {
+    top: 48%;
+  }
+
+  .indicators .number {
+    font-size: 10em;
+    transform: translateX(50px);
+    opacity: 0.5;
+  }
 }
+
+*/
+
