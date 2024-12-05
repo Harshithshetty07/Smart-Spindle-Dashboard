@@ -39,7 +39,9 @@ const TemperatureGauge = () => {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
-      <div className="relative w-64 h-96 bg-white rounded-full shadow-2xl border-4 border-gray-200 overflow-hidden">
+            <div className='bg-black w-96 h-96 flex justify-center rounded-full'>
+
+      <div className="relative w-64 h-96  rounded-full shadow-2xl border-4 border-gray-200 overflow-hidden">
         {/* Outer Circle */}
         <div className="absolute inset-0 flex items-center justify-center">
           {/* Water Container */}
@@ -68,9 +70,11 @@ const TemperatureGauge = () => {
         {/* Temperature Display */}
         <div className="absolute bottom-4 left-0 right-0 text-center">
           <div className="text-2xl font-bold">{temperature}°F</div>
-          <div className="text-sm text-gray-500">{getTemperatureLabel(temperature)}</div>
+          <div className="text-md text-gray-200 p-4">{getTemperatureLabel(temperature)}</div>
         </div>
       </div>
+            </div>
+
     </div>
   );
 };
