@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useEffect, useState, Suspense } from 'react';
@@ -28,6 +27,7 @@ const SpectrogramContent = () => {
     height: typeof window !== 'undefined' ? Math.min(window.innerHeight * 0.7, 600) : 500
   });
   const [spectrogramData, setSpectrogramData] = useState(null);
+  const [totalDataPoints, setTotalDataPoints] = useState(5000);
 
   useEffect(() => {
     const handleResize = () => {
@@ -44,18 +44,17 @@ const SpectrogramContent = () => {
   }, []);
 
   const generateSpectrogramData = () => {
-    const totalDataPoints = 10000;
     const duration = 60; // 1 minute in seconds
     
-    // Generate time data
+    // Generate time data with dynamic scaling
     const xData = Array.from({ length: 200 }, (_, i) => i * (duration / 200));
     
     // Generate frequency data
     const yData = Array.from({ length: 200 }, (_, i) => i * (200 / 200));
     
-    // Initialize zData with random values
+    // Initialize zData with random values based on totalDataPoints
     const zData = Array(200).fill().map(() => 
-      Array(200).fill(0).map(() => Math.random() * 8)
+      Array(200).fill(0).map(() => Math.random() * (totalDataPoints / 1250))
     );
 
     // Add some structured randomness to simulate signal characteristics
@@ -87,12 +86,23 @@ const SpectrogramContent = () => {
   useEffect(() => {
     const updateInterval = setInterval(() => {
       setSpectrogramData(generateSpectrogramData());
-    }, 1000);
+    }, 10000);
 
     // Initial data generation
     setSpectrogramData(generateSpectrogramData());
 
-    return () => clearInterval(updateInterval);
+    // Change totalDataPoints every 2 seconds
+    const dataPointsInterval = setInterval(() => {
+      setTotalDataPoints(prevPoints => 
+        prevPoints === 10000 ? 20000 : 
+        prevPoints === 20000 ? 5000 : 10000
+      );
+    }, 1000);
+
+    return () => {
+      clearInterval(updateInterval);
+      clearInterval(dataPointsInterval);
+    };
   }, []);
 
   // If data is not yet generated, return loading
@@ -101,92 +111,97 @@ const SpectrogramContent = () => {
   const { xData, yData, zData } = spectrogramData;
 
   return (
-    <Plot
-      data={[{
-        z: zData,
-        x: xData,
-        y: yData,
-        type: 'heatmap',
-        colorscale: [
-          [0, 'rgb(0, 0, 150)'],
-          [0.2, 'rgb(0, 0, 255)'],
-          [0.3, 'rgb(0, 255, 255)'],
-          [0.4, 'rgb(0, 255, 0)'],
-          [0.6, 'rgb(255, 255, 0)'],
-          [0.8, 'rgb(255, 0, 0)'],
-          [1, 'rgb(128, 0, 0)']
-        ],
-        colorbar: {
-          title: {
-            text: "Amplitude",
-            font: { color: 'white' }
+    <div className="flex flex-col items-center">
+      <div className="mb-4 text-white">
+        Total Data Points: {totalDataPoints}
+      </div>
+      <Plot
+        data={[{
+          z: zData,
+          x: xData,
+          y: yData,
+          type: 'heatmap',
+          colorscale: [
+            [0, 'rgb(0, 0, 150)'],
+            [0.2, 'rgb(0, 0, 255)'],
+            [0.3, 'rgb(0, 255, 255)'],
+            [0.4, 'rgb(0, 255, 0)'],
+            [0.6, 'rgb(255, 255, 0)'],
+            [0.8, 'rgb(255, 0, 0)'],
+            [1, 'rgb(128, 0, 0)']
+          ],
+          colorbar: {
+            title: {
+              text: "Amplitude",
+              font: { color: 'white' }
+            },
+            titleside: 'right',
+            len: 0.9,
+            thickness: 20,
           },
-          titleside: 'right',
-          len: 0.9,
-          thickness: 20,
-        },
-        zmin: 0,
-        zmax: 8
-      }]}
-      layout={{
-        title: {
-          text: 'Dynamic Signal Spectrogram (Real-time Updates)',
-          font: {
-            size: dimensions.width < 768 ? 16 : 24,
-            color: 'white',
-          }
-        },
-        width: dimensions.width,
-        height: dimensions.height,
-        xaxis: {
+          zmin: 0,
+          zmax: 8
+        }]}
+        layout={{
           title: {
-            text: 'Time (s)',
+            text: 'Dynamic Signal Spectrogram (Real-time Updates)',
             font: {
-              size: dimensions.width < 768 ? 12 : 14,
-              color: 'white'
+              size: dimensions.width < 768 ? 16 : 24,
+              color: 'white',
             }
           },
-          range: [0, 60],
-          showgrid: false,
-          color: 'white'
-        },
-        yaxis: {
-          title: {
-            text: 'Frequency [Hz]',
-            font: {
-              size: dimensions.width < 768 ? 12 : 14,
-              color: 'white'
-            }
-          },
-          range: [0, 200],
-          showgrid: false,
-          color: 'white'
-        },
-        margin: {
-          l: dimensions.width < 768 ? 50 : 70,
-          r: dimensions.width < 768 ? 50 : 90,
-          b: dimensions.width < 768 ? 40 : 80,
-          t: dimensions.width < 768 ? 80 : 80,
-        },
-        plot_bgcolor: 'rgb(0, 0, 150)',
-        paper_bgcolor: 'black',
-        autosize: true
-      }}
-      config={{
-        responsive: true,
-        displayModeBar: true,
-        displaylogo: false,
-        modeBarButtonsToRemove: ['select2d', 'lasso2d', 'zoomIn2d', 'zoomOut2d', 'autoScale2d'],
-        toImageButtonOptions: {
-          format: 'png',
-          filename: 'dynamic_spectrogram',
-          height: dimensions.height,
           width: dimensions.width,
-          scale: 2
-        }
-      }}
-      className="w-full h-full"
-    />
+          height: dimensions.height,
+          xaxis: {
+            title: {
+              text: 'Time (s)',
+              font: {
+                size: dimensions.width < 768 ? 12 : 14,
+                color: 'white'
+              }
+            },
+            range: [0, 60],
+            showgrid: false,
+            color: 'white'
+          },
+          yaxis: {
+            title: {
+              text: 'Frequency [Hz]',
+              font: {
+                size: dimensions.width < 768 ? 12 : 14,
+                color: 'white'
+              }
+            },
+            range: [0, 200],
+            showgrid: false,
+            color: 'white'
+          },
+          margin: {
+            l: dimensions.width < 768 ? 50 : 70,
+            r: dimensions.width < 768 ? 50 : 90,
+            b: dimensions.width < 768 ? 40 : 80,
+            t: dimensions.width < 768 ? 80 : 80,
+          },
+          plot_bgcolor: 'rgb(0, 0, 150)',
+          paper_bgcolor: 'black',
+          autosize: true
+        }}
+        config={{
+          responsive: true,
+          displayModeBar: true,
+          displaylogo: false,
+          modeBarButtonsToRemove: ['select2d', 'lasso2d', 'zoomIn2d', 'zoomOut2d', 'autoScale2d'],
+          toImageButtonOptions: {
+            format: 'png',
+            filename: 'dynamic_spectrogram',
+            height: dimensions.height,
+            width: dimensions.width,
+            scale: 2
+          }
+        }}
+        className="w-full h-full"
+      />
+    </div>
   );
 };
 
