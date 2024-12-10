@@ -114,3 +114,6 @@
 
 */
 
+.plot-container {
+  @apply border border-gray-300 shadow-lg rounded-lg;
+}

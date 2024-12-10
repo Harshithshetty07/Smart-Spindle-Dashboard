@@ -1,9 +1,26 @@
 'use client'
 
 import React, { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import './slider.css'
 
+const Sliding_data = [
+    {
+        title: "Current",
+        path: 'current'
+    },
+    {
+        title: "Temperature",
+        path: 'temperature'
+    },
+    {
+        title: "Vibration",
+        path: 'vibration'
+    },
+];
+
 export default function Home() {
+  const router = useRouter();
   const [active, setActive] = useState(1);
   const listRef = useRef(null);
   const circleRef = useRef(null);
@@ -64,10 +81,16 @@ export default function Home() {
     );
   };
 
+  const handleSeeMore = () => {
+    // Navigate to the path corresponding to the current active slide
+    // Use modulo to ensure it wraps around if needed
+    const currentSlideIndex = active % Sliding_data.length;
+    const currentPath = Sliding_data[currentSlideIndex].path;
+    router.push(`/${currentPath}`);
+  };
+
   return (
     <div className="font-poppins m-0 overflow-hidden ">
-      
-
       <div className="w-full h-screen relative bg-[#17232A] 
         bg-[radial-gradient(#fff3,transparent_50%)] -mt-[50px]">
         <div 
@@ -103,12 +126,12 @@ export default function Home() {
 
         {/* Content */}
         <div className="absolute bottom-[5%] left-1/2 -translate-x-1/2 text-center text-[#eee] w-max">
-          
           <button 
+            onClick={handleSeeMore}
             className="border border-[#eee5] bg-transparent text-[#eee] 
-            font-poppins tracking-[5px] px-5 py-2.5 rounded-[20px]"
+            font-poppins tracking-[5px] px-5 py-4 rounded-[20px]"
           >
-            See more
+            See more {Sliding_data[active % Sliding_data.length].title}
           </button>
         </div>
 

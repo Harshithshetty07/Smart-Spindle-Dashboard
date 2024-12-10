@@ -1,29 +1,35 @@
 'use client'
 
-import { ChevronRight, ChevronLeft  } from 'lucide-react';
+import { ChevronRight, ChevronLeft } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+
 
 const Dashboard = () => {
+  const router = useRouter();
   const [currentSlide, setCurrentSlide] = useState(0);
 
   const carouselData = [
     {
       category: 'Category 1',
-      title: 'Example 1',
+      title: 'Vibration ',
       description: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Distinctio quas, ipsum exercitationem mollitia saepe neque aut corporis officiis excepturi architecto?',
-      image: '/images/spindle2.png'
+      image: '/images/spindle2.png',
+      path: 'vibration'
     },
     {
       category: 'Category 2',
-      title: 'Example 2',
+      title: 'Current',
       description: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Distinctio quas, ipsum exercitationem mollitia saepe neque aut corporis officiis excepturi architecto?',
-      image: '/images/spindle.png'
+      image: '/images/spindle.png',
+      path: 'current'
     },
     {
       category: 'Category 3',
-      title: 'Example 3',
+      title: 'Temperature',
       description: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Distinctio quas, ipsum exercitationem mollitia saepe neque aut corporis officiis excepturi architecto?',
-      image: '/images/spindle2.png'
+      image: '/images/spindle2.png',
+      path: 'temperature'
     }
   ];
 
@@ -42,6 +48,12 @@ const Dashboard = () => {
   const prevSlide = useCallback(() => {
     updateCarousel(currentSlide - 1);
   }, [currentSlide, updateCarousel]);
+
+  const handleSeeMore = useCallback(() => {
+    // Navigate to the path of the current slide
+    const currentPath = carouselData[currentSlide].path;
+    router.push(`/${currentPath}`);
+  }, [currentSlide, router, carouselData]);
 
   useEffect(() => {
     const autoPlayInterval = setInterval(() => {
@@ -66,8 +78,6 @@ const Dashboard = () => {
           </ul>
         </nav>
       </header>
-
-        
 
       {/* Carousel */}
       <section 
@@ -115,8 +125,10 @@ const Dashboard = () => {
                   <p className="description text-white/50 max-w-[450px] text-[1rem] font-semibold text-right">
                     {slide.description}
                   </p>
+                  
                   <div className="more grid grid-cols-[120px_120px] gap-5 grid-rows-[60px]">
                     <button 
+                      onClick={handleSeeMore}
                       className="rounded-[30px] font-league-gothic text-white 
                       border-2 border-transparent bg-clip-padding 
                       bg-gradient-to-r from-[#242745] to-[#242745] 
@@ -165,7 +177,7 @@ const Dashboard = () => {
             transition-colors duration-500"
           >
             <ChevronRight />
-            </button>
+          </button>
         </div>
 
         {/* Indicators */}
