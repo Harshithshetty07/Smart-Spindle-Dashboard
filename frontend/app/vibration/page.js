@@ -88,7 +88,7 @@ const VibrationSpectrogram = () => {
           },
         ]}
         layout={{
-          title: 'Vibration Frequency Spectrogram',
+          title: ' Frequency Spectrogram',
           xaxis: { title: 'Time (s)', rangeslider: { visible: false } },
           yaxis: { 
             title: 'Frequency (Hz)', 
