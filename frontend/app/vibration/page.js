@@ -7,10 +7,20 @@ const Plot = dynamic(() => import('react-plotly.js'), { ssr: false });
 const VibrationSpectrogram = () => {
   const [isClient, setIsClient] = useState(false);
   const [spectrogram, setSpectrogram] = useState([]);
+  const [dimensions, setDimensions] = useState({ width: window.innerWidth, });
+
+  // Define minimum and maximum frequency values
+  const minFrequency = 0;
+  const maxFrequency = 1000;
 
   // Memoize constant data to prevent unnecessary re-renders
   const timeData = useMemo(() => Array.from({ length: 30 }, (_, i) => i), []);
-  const frequencyData = useMemo(() => Array.from({ length: 100 }, (_, i) => i * 10), []);
+  const frequencyData = useMemo(() => 
+    Array.from({ length: 100 }, (_, i) => 
+      minFrequency + (i / 99) * (maxFrequency - minFrequency)
+    ), 
+    [minFrequency, maxFrequency]
+  );
 
   // Fixed color bar configuration to prevent moving
   const colorBarConfig = useMemo(() => ({
@@ -24,13 +34,13 @@ const VibrationSpectrogram = () => {
 
   // Optimized update function using useCallback
   const updateSpectrogram = useCallback(() => {
-    const newSpectrogram = frequencyData.map((_, freqIdx) =>
+    const newSpectrogram = frequencyData.map((freq, freqIdx) =>
       timeData.map((_, timeIdx) => {
         // Introduce more randomness and time-dependent variation
         const value = (
           Math.sin((freqIdx / 10 + timeIdx + Date.now() / 1000) / 5) * 100 + 
           Math.random() * 50 + 
-          (frequencyData[freqIdx] / 4)
+          (freq / 10)
         );
         // Clip the value to ensure it stays within the predefined range
         return Math.max(0, Math.min(100, value));
@@ -39,6 +49,19 @@ const VibrationSpectrogram = () => {
     
     setSpectrogram(newSpectrogram);
   }, [timeData, frequencyData]);
+
+  // Handle window resize
+  useEffect(() => {
+    const handleResize = () => {
+      setDimensions({ width: window.innerWidth, });
+    };
+
+    window.addEventListener('resize', handleResize);
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
 
   useEffect(() => {
     setIsClient(true);
@@ -62,7 +85,7 @@ const VibrationSpectrogram = () => {
   ];
 
   return (
-    <div className="w-full h-full flex justify-center items-center">
+    <div className="w-full h-[35rem] overflow-hidden flex justify-center items-center">
       <Plot
         data={[
           {
@@ -79,14 +102,19 @@ const VibrationSpectrogram = () => {
         layout={{
           title: 'Vibration Frequency Spectrogram',
           xaxis: { title: 'Time (s)', rangeslider: { visible: false } },
-          yaxis: { title: 'Frequency (Hz)', autorange: 'reversed' },
+          yaxis: { 
+            title: 'Frequency (Hz)', 
+            autorange: true, // This allows the full range to be displayed
+            range: [minFrequency, maxFrequency] // Explicitly set the range
+          },
           paper_bgcolor: 'rgb(240, 240, 240)',
           plot_bgcolor: 'rgb(240, 240, 240)',
-          width: '100%',
-          height: '100%',
+          width: dimensions.width,
+          height: dimensions.height,
+          margin: { l: 50, r: 50, t: 50, b: 50 } // Adjust margins to maximize plot area
         }}
         config={{ responsive: true }}
-        className="min-w-max h-full"
+        className="w-full h-full"
       />
     </div>
   );
