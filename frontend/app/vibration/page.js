@@ -7,7 +7,6 @@ const Plot = dynamic(() => import('react-plotly.js'), { ssr: false });
 const VibrationSpectrogram = () => {
   const [isClient, setIsClient] = useState(false);
   const [spectrogram, setSpectrogram] = useState([]);
-  const [dimensions, setDimensions] = useState({ width: window.innerWidth, });
 
   // Define minimum and maximum frequency values
   const minFrequency = 0;
@@ -50,18 +49,7 @@ const VibrationSpectrogram = () => {
     setSpectrogram(newSpectrogram);
   }, [timeData, frequencyData]);
 
-  // Handle window resize
-  useEffect(() => {
-    const handleResize = () => {
-      setDimensions({ width: window.innerWidth, });
-    };
-
-    window.addEventListener('resize', handleResize);
-    
-    return () => {
-      window.removeEventListener('resize', handleResize);
-    };
-  }, []);
+  
 
   useEffect(() => {
     setIsClient(true);
@@ -109,8 +97,6 @@ const VibrationSpectrogram = () => {
           },
           paper_bgcolor: 'rgb(240, 240, 240)',
           plot_bgcolor: 'rgb(240, 240, 240)',
-          width: dimensions.width,
-          height: dimensions.height,
           margin: { l: 50, r: 50, t: 50, b: 50 } // Adjust margins to maximize plot area
         }}
         config={{ responsive: true }}
