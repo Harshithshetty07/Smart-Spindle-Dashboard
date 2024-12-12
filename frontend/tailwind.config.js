@@ -11,6 +11,7 @@ module.exports = {
         'poppins': ['Poppins', 'sans-serif'],
         'league-gothic': ['League Gothic', 'sans-serif']
       },
+      
       zIndex: {
         '100': '100'
       }
