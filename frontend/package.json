@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@lightningchart/lcjs": "^6.1.1",
+    "@shadcn/ui": "^0.0.4",
     "axios": "^1.7.9",
     "chart.js": "^4.4.7",
     "chartjs-plugin-streaming": "^2.0.0",
@@ -27,7 +28,7 @@
     "react-circular-progressbar": "^2.1.0",
     "react-dom": "19.0.0-rc-66855b96-20241106",
     "react-plotly.js": "^2.6.0",
-    "recharts": "^2.14.1",
+    "recharts": "^2.15.0",
     "three": "^0.171.0"
   },
   "devDependencies": {

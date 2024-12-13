@@ -1,109 +1,108 @@
 'use client'
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import dynamic from 'next/dynamic';
 
-const Plot = dynamic(() => import('react-plotly.js'), { ssr: false });
+import React, { useEffect, useRef, useState } from "react";
+import { Chart as ChartJS, LineElement, PointElement, CategoryScale, LinearScale, Filler } from "chart.js";
+import { Line } from "react-chartjs-2";
 
-const VibrationSpectrogram = () => {
-  const [isClient, setIsClient] = useState(false);
-  const [spectrogram, setSpectrogram] = useState([]);
+// Register necessary Chart.js elements
+ChartJS.register(LineElement, PointElement, CategoryScale, LinearScale, Filler);
 
-  // Define minimum and maximum frequency values
-  const minFrequency = 0;
-  const maxFrequency = 1000;
+const LiveSpectrogram = () => {
+  const chartRef = useRef(null); // Reference to chart for gradient
+  const [chartData, setChartData] = useState({
+    labels: Array.from({ length: 32 }, (_, i) => ` ${i + 1}`),
+    datasets: [
+      {
+        label: "Frequency Intensity",
+        data: Array.from({ length: 32 }, () => Math.random() * 100),
+        borderWidth: 2,
+        borderColor: "rgba(255, 0, 0, 1)", // Default red border
+        backgroundColor: "rgba(0, 0, 255, 0.2)", // Placeholder for gradient
+        tension: 0.3, // Smooth curves
+        fill: true, // Enable fill for gradient
+      },
+    ],
+  });
 
-  // Memoize constant data to prevent unnecessary re-renders
-  const timeData = useMemo(() => Array.from({ length: 30 }, (_, i) => i), []);
-  const frequencyData = useMemo(() => 
-    Array.from({ length: 100 }, (_, i) => 
-      minFrequency + (i / 99) * (maxFrequency - minFrequency)
-    ), 
-    [minFrequency, maxFrequency]
-  );
-
-  // Fixed color bar configuration to prevent moving
-  const colorBarConfig = useMemo(() => ({
-    title: 'Amplitude',
-    tick0: 0,
-    dtick: 30, // Fixed interval between ticks
-    tickvals: [10, 25, 50, 75], // Evenly spaced fixed values
-    ticktext: ['10', '25', '50', '75'], // Corresponding text labels
-    range: [0, 100] // Fixed range to prevent scaling
-  }), []);
-
-  // Optimized update function using useCallback
-  const updateSpectrogram = useCallback(() => {
-    const newSpectrogram = frequencyData.map((freq, freqIdx) =>
-      timeData.map((_, timeIdx) => {
-        // Introduce more randomness and time-dependent variation
-        const value = (
-          Math.sin((freqIdx / 10 + timeIdx + Date.now() / 1000) / 5) * 100 + 
-          Math.random() * 50 + 
-          (freq / 10)
-        );
-        // Clip the value to ensure it stays within the predefined range
-        return Math.max(0, Math.min(100, value));
-      })
-    );
-    
-    setSpectrogram(newSpectrogram);
-  }, [timeData, frequencyData]);
-
-  
-
+  // Dynamically generate gradient for the chart
   useEffect(() => {
-    setIsClient(true);
+    const chart = chartRef.current;
+    if (chart) {
+      const ctx = chart.ctx;
+      const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+      gradient.addColorStop(0, "rgba(255, 0, 0, 0.8)"); // Red (high frequency)
+      gradient.addColorStop(1, "rgba(0, 0, 255, 0.8)"); // Blue (low frequency)
+      setChartData((prev) => ({
+        ...prev,
+        datasets: [
+          {
+            ...prev.datasets[0],
+            backgroundColor: gradient, // Apply gradient
+            borderColor: "rgba(255, 255, 255, 0.8)", // White border for visibility
+          },
+        ],
+      }));
+    }
+  }, [chartRef]);
+
+  // Update the chart data every second
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setChartData((prev) => ({
+        ...prev,
+        datasets: [
+          {
+            ...prev.datasets[0],
+            data: Array.from({ length: 32 }, () => Math.random() * 100), // Update data dynamically
+          },
+        ],
+      }));
+    }, 2000);
+
+    return () => clearInterval(interval); // Cleanup on unmount
   }, []);
 
-  useEffect(() => {
-    if (isClient) {
-      updateSpectrogram();
-      
-      const intervalId = setInterval(updateSpectrogram, 500);
-      return () => clearInterval(intervalId);
-    }
-  }, [isClient, updateSpectrogram]);
-
-  if (!isClient) return null;
-
-  // Custom red-blue color scale
-  const redBlueColorScale = [
-    [0, 'blue'],
-    [1, 'red']
-  ];
-
   return (
-    <div className="w-full h-[35rem] overflow-hidden flex justify-center items-center">
-      <Plot
-        data={[
-          {
-            z: spectrogram,
-            x: timeData,
-            y: frequencyData,
-            type: 'heatmap',
-            colorscale: redBlueColorScale,
-            colorbar: colorBarConfig,
-            zmin: 0,
-            zmax: 100
-          },
-        ]}
-        layout={{
-          title: ' Frequency Spectrogram',
-          xaxis: { title: 'Time (s)', rangeslider: { visible: false } },
-          yaxis: { 
-            title: 'Frequency (Hz)', 
-            autorange: true, // This allows the full range to be displayed
-            range: [minFrequency, maxFrequency] // Explicitly set the range
-          },
-          paper_bgcolor: 'rgb(240, 240, 240)',
-          plot_bgcolor: 'rgb(240, 240, 240)',
-          margin: { l: 50, r: 50, t: 50, b: 50 } // Adjust margins to maximize plot area
-        }}
-        config={{ responsive: true }}
-        className="w-full h-full"
-      />
+    <div className="p-4 bg-gray-900 min-h-screen text-white">
+      <h2 className="text-center text-2xl font-bold mb-4">Live Spectrogram</h2>
+      <div className="relative">
+        <Line
+          ref={chartRef}
+          data={chartData}
+          options={{
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: {
+                grid: { color: "rgba(255, 255, 255, 0.2)" }, // White grid lines
+                ticks: { color: "white" },
+                title: { display: true, text: "Time ", color: "white" },
+              },
+              y: {
+                grid: { color: "rgba(255, 255, 255, 0.2)" }, // White grid lines
+                ticks: { color: "white" },
+                title: { display: true, text: "Frequency (hz)", color: "white" },
+              },
+            },
+            plugins: {
+              legend: { display: false }, // Hide legend
+            },
+            elements: {
+              line: {
+                borderWidth: 2, // Line thickness
+              },
+              point: {
+                radius: 2, // Point size
+                hoverRadius: 4,
+                backgroundColor: "white", // Points are white
+              },
+            },
+          }}
+          height={400}
+        />
+      </div>
     </div>
   );
 };
 
-export default VibrationSpectrogram;
+export default LiveSpectrogram;
