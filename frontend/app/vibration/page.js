@@ -27,6 +27,9 @@ function SpectrogramVisualization() {
     }
   };
 
+
+  
+
   const fetchData = async () => {
     if (isRunning) {
       try {
