@@ -3,7 +3,7 @@
 import { ChevronRight, ChevronLeft } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-
+import Link from 'next/link';
 
 const Dashboard = () => {
   const router = useRouter();
@@ -50,6 +50,9 @@ const Dashboard = () => {
   }, [currentSlide, updateCarousel]);
 
   const handleSeeMore = useCallback(() => {
+    // Debugging console log
+    console.log('See More clicked', carouselData[currentSlide]);
+    
     // Navigate to the path of the current slide
     const currentPath = carouselData[currentSlide].path;
     router.push(`/${currentPath}`);
@@ -87,7 +90,7 @@ const Dashboard = () => {
           {carouselData.map((slide, index) => {
             // Calculate the slide translation based on current slide
             const calculation = index < currentSlide ? 1 : 
-                               index > currentSlide ? 1 : 0;
+                              index > currentSlide ? 1 : 0;
 
             return (
               <div 
@@ -117,39 +120,33 @@ const Dashboard = () => {
 
                 {/* Content */}
                 <div className="absolute z-20 w-[70%] h-full right-[200px] 
-                  flex flex-col justify-center items-end gap-5">
-                  <p className="category font-medium">{slide.category}</p>
-                  <h2 className="carousel-title font-poppins text-[8em] leading-none">
+                  flex flex-col justify-center items-end gap-14">
+                    <div className='w-44 h-16 bg-gradient-to-r from-emerald-500 to-emerald-900 cursor-pointer rounded-full flex justify-center items-center'>
+                  <Link 
+                    href={`/${slide.path}`}
+                    className=" font-medium hover:text-yellow-500 pb-4 transition-colors mt-4"
+                  >
+                    {slide.category}
+                  </Link>
+                  </div>
+                  <h2 className="carousel-title text-[#ebebeb] font-semibold font-poppins text-[8em] -mt-14 leading-none">
                     {slide.title}
                   </h2>
                   <p className="description text-white/50 max-w-[450px] text-[1rem] font-semibold text-right">
                     {slide.description}
                   </p>
-                  
-                  <div className="more grid grid-cols-[120px_120px] gap-5 grid-rows-[60px]">
-                    <button 
-                      onClick={handleSeeMore}
-                      className="rounded-[30px] font-league-gothic text-white 
-                      border-2 border-transparent bg-clip-padding 
-                      bg-gradient-to-r from-[#242745] to-[#242745] 
-                      border-gradient-to-l from-[#81baa0] border-[#46a39a]"
-                    >
-                      See More
-                    </button>
-                  </div>
                 </div>
               </div>
             );
           })}
-
           {/* Vertical and Horizontal Lines */}
           <div 
             className="absolute right-[200px] w-[200px] h-full 
             border-l border-r border-[#324073] pointer-events-none"
           />
           <div 
-            className="absolute h-[250px] w-full 
-            border-t border-b border-[#324073] top-[51%] pointer-events-none"
+            className="absolute h-[240px] w-full 
+            border-t border-b border-[#324073] top-[52%] pointer-events-none"
           />
         </div>
 
