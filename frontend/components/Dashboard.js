@@ -92,6 +92,8 @@ const Dashboard = () => {
             const calculation = index < currentSlide ? 1 : 
                               index > currentSlide ? 1 : 0;
 
+
+                              
             return (
               <div 
                 key={index} 
