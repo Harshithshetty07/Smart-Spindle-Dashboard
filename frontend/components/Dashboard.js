@@ -91,9 +91,6 @@ const Dashboard = () => {
             // Calculate the slide translation based on current slide
             const calculation = index < currentSlide ? 1 : 
                               index > currentSlide ? 1 : 0;
-
-
-                              
             return (
               <div 
                 key={index} 
