@@ -1,35 +1,12 @@
 'use client'
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import Plot from 'react-plotly.js';
 
 function SpectrogramVisualization() {
   const [spectrogramData, setSpectrogramData] = useState([]);
   const [isRunning, setIsRunning] = useState(false);
-  const [windowSize, setWindowSize] = useState({
-    width: undefined,
-    height: undefined,
-  });
-
-  // Responsive window size tracking
-  useEffect(() => {
-    function handleResize() {
-      setWindowSize({
-        width: window.innerWidth,
-        height: window.innerHeight,
-      });
-    }
-    
-    // Add event listener
-    window.addEventListener('resize', handleResize);
-    
-    // Initial call
-    handleResize();
-    
-    // Cleanup
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  const plotlyDivRef = useRef(null);
 
   const startDataGeneration = async () => {
     try {
@@ -66,76 +43,104 @@ function SpectrogramVisualization() {
     return () => clearInterval(interval);
   }, [isRunning]);
 
-  // Dynamic layout configuration
-  const getLayoutConfig = () => {
-    const isMobile = windowSize.width < 768;
-    const isTablet = windowSize.width >= 768 && windowSize.width < 1024;
+  // Prepare data for Plotly visualizations
+  const prepareHeatmapData = () => {
+    const timeValues = spectrogramData.map(d => d.time);
+    const frequencyValues = spectrogramData.map(d => d.frequency);
+    const amplitudeValues = spectrogramData.map(d => d.amplitude);
 
-    return {
-      title: 'STFT Spectrogram',
-      xaxis: { 
-        title: 'Time',
-        titlefont: { size: isMobile ? 10 : isTablet ? 12 : 14 }
-      },
-      yaxis: { 
-        title: 'Frequency',
-        titlefont: { size: isMobile ? 10 : isTablet ? 12 : 14 }
-      },
-      margin: { 
-        l: isMobile ? 25 : 50, 
-        r: isMobile ? 25 : 50, 
-        t: isMobile ? 25 : 50, 
-        b: isMobile ? 25 : 50 
-      },
-      autosize: true,
-    };
+    return [{
+      x: timeValues,
+      y: frequencyValues,
+      z: amplitudeValues,
+      type: 'heatmap',
+      colorscale: 'Viridis'
+    }];
+  };
+
+  const prepare3DSurfaceData = () => {
+    // Organize data into a 2D matrix for 3D surface plot
+    const timeValues = [...new Set(spectrogramData.map(d => d.time))];
+    const frequencyValues = [...new Set(spectrogramData.map(d => d.frequency))];
+    
+    // Create a 2D matrix of amplitudes
+    const zData = timeValues.map(time => 
+      frequencyValues.map(freq => {
+        const matchingPoint = spectrogramData.find(
+          d => Math.abs(d.time - time) < 0.001 && Math.abs(d.frequency - freq) < 0.001
+        );
+        return matchingPoint ? matchingPoint.amplitude : 0;
+      })
+    );
+
+    return [{
+      z: zData,
+      type: 'surface',
+      contours: {
+        z: {
+          show: true,
+          usecolormap: true,
+          highlightcolor: "#42f462",
+          project: { z: true }
+        }
+      }
+    }];
+  };
+
+  const heatmapLayout = {
+    title: 'Spectrogram Heatmap',
+    xaxis: { title: 'Time' },
+    yaxis: { title: 'Frequency' }
+  };
+
+  const surfaceLayout = {
+    title: 'STFT 3D Surface Plot',
+    scene: {
+      xaxis: { title: 'Time' },
+      yaxis: { title: 'Frequency' },
+      zaxis: { title: 'Amplitude' },
+      camera: { eye: { x: 1.87, y: 0.88, z: -0.64 } }
+    },
+    autosize: false,
+    width: 800,
+    height: 600,
+    margin: {
+      l: 65,
+      r: 50,
+      b: 65,
+      t: 90,
+    }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-black">
-      <div className="flex-grow overflow-hidden w-full h-full">
-        <Plot
-          data={[{
-            x: spectrogramData.map(d => d.time),
-            y: spectrogramData.map(d => d.frequency),
-            z: spectrogramData.map(d => d.amplitude),
-            type: 'heatmap',
-            colorscale: 'Viridis'
-          }]}
-          layout={getLayoutConfig()}
-          style={{ 
-            width: '100%', 
-            height: windowSize.width < 768 ? '80%' : '90%' 
-          }}
-          config={{ 
-            responsive: true,
-            displayModeBar: false 
-          }}
-        />
+    <div className=" mx-auto p-4">
+      <div className="flex justify-center space-x-4 mb-4">
+        <button 
+          className={`px-4 py-2 rounded ${isRunning ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'} text-white`}
+          onClick={isRunning ? stopDataGeneration : startDataGeneration}
+        >
+          {isRunning ? 'Stop' : 'Start'} Data Generation
+        </button>
       </div>
 
-      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
-        <button 
-          onClick={isRunning ? stopDataGeneration : startDataGeneration} 
-          className="
-            w-48 md:w-64 
-            h-16 md:h-16 
-            bg-white 
-            text-black 
-            text-lg md:text-xl 
-            rounded-lg 
-            shadow-lg 
-            hover:bg-gray-200 
-            transition-colors 
-            duration-300 
-            focus:outline-none 
-            focus:ring-2 
-            focus:ring-blue-500 
-            focus:ring-opacity-50
-          "
-        >
-          {isRunning ? 'Stop' : 'Start'}
-        </button>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <h2 className="text-xl font-bold mb-2">2D Spectrogram Heatmap</h2>
+          <Plot
+            data={prepareHeatmapData()}
+            layout={heatmapLayout}
+            className="w-full"
+          />
+        </div>
+
+        <div>
+          <h2 className="text-xl font-bold mb-2">3D Surface Plot</h2>
+          <Plot
+            data={prepare3DSurfaceData()}
+            layout={surfaceLayout}
+            className="w-full"
+          />
+        </div>
       </div>
     </div>
   );
