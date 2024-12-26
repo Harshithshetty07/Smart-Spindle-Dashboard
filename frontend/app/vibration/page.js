@@ -1,16 +1,19 @@
 'use client'
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Plot from 'react-plotly.js';
 
-function SpectrogramVisualization() {
+const SpectrogramVisualization = () => {
   const [spectrogramData, setSpectrogramData] = useState([]);
   const [isRunning, setIsRunning] = useState(false);
-  const plotlyDivRef = useRef(null);
+  const [selectedChannel, setSelectedChannel] = useState('1');
+
+  // Available channels
+  const channels = ['1', '2', '3', '4'];
 
   const startDataGeneration = async () => {
     try {
-      const response = await axios.get('https://cmti-edge.online/intelipod/DataHandle.php?action=start');
+      const response = await axios.get(`https://cmti-edge.online/intelipod/DataHandle.php?action=start&channel=${selectedChannel}`);
       setSpectrogramData(response.data.spectrogramData);
       setIsRunning(true);
     } catch (error) {
@@ -30,7 +33,7 @@ function SpectrogramVisualization() {
   const fetchData = async () => {
     if (isRunning) {
       try {
-        const response = await axios.get('https://cmti-edge.online/intelipod/DataHandle.php?action=fetch');
+        const response = await axios.get(`https://cmti-edge.online/intelipod/DataHandle.php?action=fetch&channel=${selectedChannel}`);
         setSpectrogramData(response.data.spectrogramData);
       } catch (error) {
         console.error('Error fetching data', error);
@@ -41,9 +44,8 @@ function SpectrogramVisualization() {
   useEffect(() => {
     const interval = setInterval(fetchData, 1000);
     return () => clearInterval(interval);
-  }, [isRunning]);
+  }, [isRunning, selectedChannel]);
 
-  // Prepare data for Plotly visualizations
   const prepareHeatmapData = () => {
     const timeValues = spectrogramData.map(d => d.time);
     const frequencyValues = spectrogramData.map(d => d.frequency);
@@ -59,11 +61,9 @@ function SpectrogramVisualization() {
   };
 
   const prepare3DSurfaceData = () => {
-    // Organize data into a 2D matrix for 3D surface plot
     const timeValues = [...new Set(spectrogramData.map(d => d.time))];
     const frequencyValues = [...new Set(spectrogramData.map(d => d.frequency))];
     
-    // Create a 2D matrix of amplitudes
     const zData = timeValues.map(time => 
       frequencyValues.map(freq => {
         const matchingPoint = spectrogramData.find(
@@ -88,13 +88,13 @@ function SpectrogramVisualization() {
   };
 
   const heatmapLayout = {
-    title: 'Spectrogram Heatmap',
+    title: `Channel ${selectedChannel} - Spectrogram Heatmap`,
     xaxis: { title: 'Time' },
     yaxis: { title: 'Frequency' }
   };
 
   const surfaceLayout = {
-    title: 'STFT 3D Surface Plot',
+    title: `Channel ${selectedChannel} - STFT 3D Surface Plot`,
     scene: {
       xaxis: { title: 'Time' },
       yaxis: { title: 'Frequency' },
@@ -113,14 +113,28 @@ function SpectrogramVisualization() {
   };
 
   return (
-    <div className=" mx-auto p-4">
+    <div className="mx-auto p-4">
       <div className="flex justify-center space-x-4 mb-4">
-        <button 
-          className={`px-4 py-2 rounded ${isRunning ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'} text-white`}
-          onClick={isRunning ? stopDataGeneration : startDataGeneration}
-        >
-          {isRunning ? 'Stop' : 'Start'} Data Generation
-        </button>
+        <div className="flex items-center space-x-4">
+          <select 
+            value={selectedChannel}
+            onChange={(e) => setSelectedChannel(e.target.value)}
+            className="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            {channels.map(channel => (
+              <option key={channel} value={channel}>
+                Channel {channel}
+              </option>
+            ))}
+          </select>
+          
+          <button 
+            className={`px-4 py-2 rounded ${isRunning ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'} text-white`}
+            onClick={isRunning ? stopDataGeneration : startDataGeneration}
+          >
+            {isRunning ? 'Stop' : 'Start'} Data Generation
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -144,6 +158,6 @@ function SpectrogramVisualization() {
       </div>
     </div>
   );
-}
+};
 
 export default SpectrogramVisualization;
