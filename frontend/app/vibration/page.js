@@ -23,6 +23,8 @@ const SpectrogramVisualization = () => {
 
 
   
+
+  
   const stopDataGeneration = async () => {
     try {
       await axios.get('https://cmti-edge.online/intelipod/DataHandle.php?action=stop');
