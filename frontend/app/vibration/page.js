@@ -21,9 +21,6 @@ const SpectrogramVisualization = () => {
     }
   };
 
-
-  
-
   
   const stopDataGeneration = async () => {
     try {
